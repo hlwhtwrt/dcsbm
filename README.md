@@ -22,7 +22,7 @@ into a standalone tool.
 
 ```r
 # install.packages("remotes")
-remotes::install_github("<github-username>/dcsbm")
+remotes::install_github("hlwhtwrt/dcsbm")
 ```
 
 ## Usage
