@@ -1,7 +1,7 @@
 Package: dcsbm
 Title: Bayesian Weighted Degree-Corrected Stochastic Block Models
 Version: 0.1.0
-Authors@R: person("Holland", "Whitworth", email = "hwhitworth516@gmail.com", role = c("aut", "cre"))
+Authors@R: person("Harrison", "Whitworth", email = "hwhitworth516@gmail.com", role = c("aut", "cre"))
 Description: Fits a Gaussian degree-corrected stochastic block model to a
     weighted network via Gibbs sampling, with an optional localized
     edge-covariate effect (a continuous covariate and/or a binary edge
