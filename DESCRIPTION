@@ -1,0 +1,21 @@
+Package: dcsbm
+Title: Bayesian Weighted Degree-Corrected Stochastic Block Models
+Version: 0.1.0
+Authors@R: person("Holland", "Whitworth", email = "hwhitworth516@gmail.com", role = c("aut", "cre"))
+Description: Fits a Gaussian degree-corrected stochastic block model to a
+    weighted network via Gibbs sampling, with an optional localized
+    edge-covariate effect (a continuous covariate and/or a binary edge
+    indicator, each with its own block-pair-specific coefficient) and an
+    optional "reallocate" Metropolis-Hastings move that jointly redistributes
+    node memberships between two existing blocks to improve within-chain
+    mixing. K (the number of blocks) is fixed and user-specified; see
+    select_K() for a helper that sweeps a grid of K values.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Depends: R (>= 4.0)
+Imports:
+    gtools,
+    stats,
+    graphics
