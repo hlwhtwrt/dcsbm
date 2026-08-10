@@ -1,0 +1,137 @@
+---
+title: "Getting Started with dcsbm"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with dcsbm}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6, fig.height = 4.5)
+```
+
+## Motivation
+
+`dcsbm` fits a Bayesian weighted degree-corrected stochastic block model
+(DC-SBM) to a symmetric weighted network: nodes are partitioned into `K`
+blocks, and the expected edge weight between two nodes depends on which pair
+of blocks they belong to, plus a per-node degree-correction term. Unlike a
+standard SBM, edge weights are continuous (Gaussian), not just present/absent.
+
+The package also supports an optional **edge-level covariate effect** that is
+*localized* to each block pair rather than shared across the whole network —
+useful when you suspect a covariate's association with edge weight differs
+by which communities the two endpoints belong to.
+
+This vignette walks through simulating a network with known structure,
+fitting the base model, adding a covariate effect, choosing `K`, and using
+the `reallocate` move to improve chain mixing.
+
+```{r setup}
+library(dcsbm)
+```
+
+## Simulating a network
+
+We simulate a 24-node network with three well-separated blocks: strong
+positive within-block weights, negative between-block weights.
+
+```{r simulate}
+set.seed(42)
+n <- 24
+K_true <- 3
+z_true <- rep(1:K_true, each = n / K_true)
+
+G_true <- matrix(-1.5, K_true, K_true)
+diag(G_true) <- 2.5
+
+W <- matrix(0, n, n)
+for (i in seq_len(n)) {
+  for (j in seq_len(n)) {
+    if (i != j) W[i, j] <- rnorm(1, G_true[z_true[i], z_true[j]], 0.25)
+  }
+}
+W <- (W + t(W)) / 2
+```
+
+## Fitting the base model
+
+With `K` known (here, the true value), `fit_dcsbm()` runs a Gibbs sampler and
+returns posterior draws and summaries.
+
+```{r fit-base}
+fit <- fit_dcsbm(W, K = K_true, n_iter = 400, burn = 200, thin = 2, seed = 1, verbose = FALSE)
+print(fit)
+```
+
+The MAP block assignment recovers the planted structure up to label
+permutation:
+
+```{r check-recovery}
+table(true = z_true, estimated = fit$summary$z_hat)
+```
+
+Diagnostic plots are available via `plot()`:
+
+```{r plot-base}
+plot(fit, type = "loglik")
+plot(fit, type = "heatmap")
+```
+
+## Adding a localized edge covariate
+
+Suppose we also observe a continuous edge-level covariate `X` (e.g., a
+pairwise similarity score) whose association with edge weight we want to
+estimate separately for every pair of blocks, rather than assuming one
+global slope.
+
+```{r fit-covariate}
+X <- matrix(0, n, n)
+X[upper.tri(X)] <- runif(sum(upper.tri(X)), 0, 1)
+X <- X + t(X)
+
+fit_x <- fit_dcsbm(W, K = K_true, X = X, n_iter = 400, burn = 200, thin = 2, seed = 1, verbose = FALSE)
+round(fit_x$summary$beta_post_mean, 2)
+```
+
+`beta_post_mean` is a `K x K` matrix of posterior mean covariate slopes, one
+per block pair — this is the localized effect the package is built around.
+
+## Choosing K
+
+When the true number of blocks is unknown, `select_K()` sweeps a grid of `K`
+values and reports fit criteria for each, so you can look for an elbow in
+mean log-likelihood or check for degenerate (empty/tiny) blocks. If a
+particular `K` is too large for the data to support — every post-burn
+iteration hits an empty block — that row is filled with `NA` and a warning
+is raised, but the rest of the grid still completes. With only 24 nodes and
+3 well-separated true blocks, `K = 4` is a case in point below.
+
+```{r select-k}
+grid <- select_K(W, K_grid = 2:4, n_iter = 400, burn = 200, thin = 2, verbose = FALSE)
+grid
+plot(grid)
+```
+
+## The reallocate move
+
+Single-node Gibbs updates only move one node at a time, so a chain can get
+stuck when several nodes would only want to swap blocks together as a group.
+The optional `reallocate = TRUE` move jointly redistributes node memberships
+between two existing blocks in a single Metropolis-Hastings step, which can
+substantially improve mixing (in one real-data comparison, effective sample
+size of the log-likelihood trace improved roughly 24x on an otherwise
+identical chain).
+
+```{r reallocate}
+fit_ra <- fit_dcsbm(W, K = K_true, reallocate = TRUE,
+                     n_iter = 400, burn = 200, thin = 2, seed = 1, verbose = FALSE)
+fit_ra$summary$realloc_accept_rate
+```
+
+## Next steps
+
+See `?fit_dcsbm` for the full list of prior-variance and sampler-control
+arguments, and `?select_K` for details on how failed fits (e.g. a `K` that
+never saves a draw with all blocks occupied) are handled in the grid sweep.

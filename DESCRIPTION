@@ -19,3 +19,7 @@ Imports:
     gtools,
     stats,
     graphics
+Suggests:
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

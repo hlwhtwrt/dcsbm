@@ -1,5 +1,7 @@
 # dcsbm
 
+[![R-CMD-check](https://github.com/hlwhtwrt/dcsbm/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/hlwhtwrt/dcsbm/actions/workflows/R-CMD-check.yaml)
+
 An R package for fitting Bayesian weighted degree-corrected stochastic block
 models (DC-SBMs) via Gibbs sampling. Developed as part of my PhD dissertation
 research on community detection in weighted networks, and generalized here

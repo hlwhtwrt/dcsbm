@@ -4,3 +4,6 @@
 .Ruserdata
 *.Rcheck/
 *.tar.gz
+inst/doc
+vignettes/*.html
+vignettes/*.R
