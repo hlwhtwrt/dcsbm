@@ -55,7 +55,9 @@ for (i in seq_len(n)) for (j in seq_len(n)) if (i != j) {
 }
 W <- (W + t(W)) / 2
 
-grid <- select_K(W, K_grid = 2:4, n_iter = 100, burn = 50, thin = 2, verbose = FALSE)
+grid <- suppressWarnings(
+  select_K(W, K_grid = 2:4, n_iter = 100, burn = 50, thin = 2, verbose = FALSE)
+)
 plot(grid)
 }
 }

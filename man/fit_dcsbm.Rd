@@ -60,7 +60,8 @@ for (i in seq_len(n)) for (j in seq_len(n)) if (i != j) {
 }
 W <- (W + t(W)) / 2
 
-fit <- fit_dcsbm(W, K = 3, n_iter = 200, burn = 100, thin = 2, seed = 1, verbose = FALSE)
+fit <- fit_dcsbm(W, K = 3, n_iter = 200, burn = 100, thin = 2, seed = 1,
+                 init_z = z_true, verbose = FALSE)
 print(fit)
 }
 }
